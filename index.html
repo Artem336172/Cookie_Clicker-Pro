@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍪 Cookie Clicker Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --secondary: #8b5cf6;
+            --bg-dark: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-card2: #16213e;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --gold: #ffd700;
+            --green: #10b981;
+            --red: #ef4444;
+            --blue: #3b82f6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Анимированный фон */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at 20% 50%, rgba(139,92,246,0.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 20%, rgba(245,158,11,0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .game-wrapper {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            grid-template-rows: auto 1fr;
+            gap: 0;
+            min-height: 100vh;
+        }
+
+        /* ===== HEADER ===== */
+        .game-header {
+            grid-column: 1 / -1;
+            background: rgba(26,26,46,0.95);
+            border-bottom: 2px solid rgba(245,158,11,0.3);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-title {
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-header {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-family: 'Nunito', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-header:hover {
+            background: rgba(245,158,11,0.2);
+            border-color: var(--primary);
+        }
+
+        /* ===== LEFT PANEL - Достижения ===== */
+        .left-panel {
+            background: var(--bg-card);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            padding: 16px;
+            overflow-y: auto;
+            max-height: calc(100vh - 65px);
+        }
+
+        .panel-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .achievement {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .achievement.unlocked {
+            background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(139,92,246,0.2));
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(245,158,11,0.2);
+        }
+
+        .achievement.locked {
+            filter: grayscale(1) brightness(0.4);
+        }
+
+        .achievement:hover .achievement-tooltip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .achievement-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(5px);
+            background: #1e293b;
+            border: 1px solid rgba(245,158,11,0.3);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: all 0.2s;
+            pointer-events: none;
+            z-index: 100;
+            color: var(--text);
+        }
+
+        /* Статистика в левой панели */
+        .stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .stats-row span:first-child { color: var(--text-muted); }
+        .stats-row span:last-child { color: var(--text); font-weight: 700; }
+
+        /* ===== CENTER - Главная игра ===== */
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            position: relative;
+        }
+
+        /* Счётчик монет */
+        .coins-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .coins-amount {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gold), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .coins-per-sec {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .coins-per-sec span {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        /* Кнопка клика */
+        .click-area {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .click-btn {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            background: radial-gradient(circle at 35% 35%, #ffd700, #f59e0b 50%, #d97706);
+            box-shadow: 0 0 40px rgba(245,158,11,0.4),
+                        0 0 80px rgba(245,158,11,0.1),
+                        inset 0 -8px 20px rgba(0,0,0,0.3),
+                        inset 0 8px 20px rgba(255,255,255,0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+            font-size: 5rem;
+            line-height: 1;
+            position: relative;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .click-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 0 20px rgba(245,158,11,0.3),
+                        inset 0 -4px 10px rgba(0,0,0,0.3);
+        }
+
+        .click-btn::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 20%;
+            width: 30%;
+            height: 20%;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            filter: blur(6px);
+        }
+
+        /* Плавающие +1 */
+        .float-text {
+            position: fixed;
+            font-weight: 900;
+            font-size: 1.4rem;
+            color: var(--gold);
+            pointer-events: none;
+            z-index: 9999;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            50% { opacity: 1; transform: translateY(-40px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
+        }
+
+        /* Множитель клика */
+        .multiplier-display {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .multiplier-badge {
+            background: rgba(139,92,246,0.2);
+            border: 1px solid rgba(139,92,246,0.4);
+            color: #a78bfa;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* Прогресс до следующего уровня */
+        .level-progress {
+            width: 100%;
+            max-width: 300px;
+            margin-top: 20px;
+        }
+
+        .level-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .progress-bar-outer {
+            height: 8px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Активные бустеры */
+        .boosters-active {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .booster-active {
+            background: rgba(16,185,129,0.15);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .booster-timer {
+            color: var(--green);
+            font-weight: 800;
+        }
+
+        /* ===== RIGHT PANEL - Магазин ===== */
+        .right-panel {
+            background: var(--bg-card2);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            overflow-y: auto;
+            max-height: calc(100vh - 65px);
+        }
+
+        .shop-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            position: sticky;
+            top: 0;
+            background: var(--bg-card2);
+            z-index: 10;
+        }
+
+        .shop-tab {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-family: 'Nunito', sans-serif;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+
+        .shop-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .shop-content {
+            padding: 12px;
+        }
+
+        .shop-section { display: none; }
+        .shop-section.active { display: block; }
+
+        /* Карточка товара */
+        .shop-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shop-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--item-color, var(--primary));
+        }
+
+        .shop-item:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(245,158,11,0.2);
+            transform: translateX(2px);
+        }
+
+        .shop-item.can-buy {
+            border-color: rgba(16,185,129,0.2);
+        }
+
+        .shop-item.can-buy:hover {
+            border-color: rgba(16,185,129,0.4);
+            box-shadow: 0 0 15px rgba(16,185,129,0.1);
+        }
+
+        .shop-item.cant-buy {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .shop-item.cant-buy:hover {
+            transform: none;
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .item-icon {
+            font-size: 1.5rem;
+            width: 36px;
+            text-align: center;
+        }
+
+        .item-info { flex: 1; }
+
+        .item-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .item-desc {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .item-price {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .item-owned {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.05);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .item-effect {
+            font-size: 0.7rem;
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        /* Премиум товары */
+        .premium-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, #f59e0b, #8b5cf6);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .gems-display {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #a78bfa;
+        }
+
+        /* Уведомление */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 9999;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            max-width: 260px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success { border-color: rgba(16,185,129,0.4); }
+        .notification.error { border-color: rgba(239,68,68,0.4); }
+        .notification.achievement { border-color: rgba(245,158,11,0.4); }
+
+        /* Модальное окно достижения */
+        .achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: var(--bg-card);
+            border: 2px solid var(--gold);
+            border-radius: 16px;
+            padding: 30px 40px;
+            text-align: center;
+            z-index: 10000;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 60px rgba(245,158,11,0.3);
+        }
+
+        .achievement-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .achievement-popup-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .achievement-popup h3 {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--gold);
+        }
+
+        .achievement-popup p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            display: none;
+        }
+
+        .overlay.show { display: block; }
+
+        /* Скроллбар */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+        /* Адаптив */
+        @media (max-width: 1024px) {
+            .game-wrapper {
+                grid-template-columns: 240px 1fr 260px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .game-wrapper {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto;
+            }
+
+            .left-panel {
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+
+            .right-panel {
+                max-height: none;
+                border-left: none;
+            }
+
+            .center-panel {
+                padding: 20px;
+            }
+
+            .coins-amount { font-size: 2.2rem; }
+            .click-btn { width: 140px; height: 140px; font-size: 4rem; }
+
+            .header-stats { gap: 12px; }
+            .stat-value { font-size: 1rem; }
+        }
+
+        /* Анимация пульсации кнопки */
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        .click-btn-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 2px solid rgba(245,158,11,0.4);
+            animation: pulse-ring 2s ease-out infinite;
+            pointer-events: none;
+        }
+
+        .pulse-ring:nth-child(2) { animation-delay: 0.7s; }
+        .pulse-ring:nth-child(3) { animation-delay: 1.4s; }
+
+        /* Шкала критического удара */
+        .crit-bar {
+            width: 100%;
+            max-width: 300px;
+            margin-top: 12px;
+        }
+
+        .crit-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .crit-progress {
+            height: 6px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .crit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b);
+            border-radius: 3px;
+            transition: width 0.1s;
+        }
+
+        /* Кнопка покупки в магазине */
+        .buy-btn {
+            background: linear-gradient(135deg, var(--green), #059669);
+            border: none;
+            color: white;
+            padding: 5px 14px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .buy-btn:hover { transform: scale(1.05); }
+        .buy-btn:disabled { background: rgba(255,255,255,0.1); cursor: not-allowed; }
+
+        .buy-btn.gems-btn {
+            background: linear-gradient(135deg, var(--secondary), #7c3aed);
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+
+    <!-- HEADER -->
+    <header class="game-header">
+        <div class="game-title">🍪 Cookie Clicker Pro</div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="headerCoins">0</div>
+                <div class="stat-label">Монет</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="headerCPS">0</div>
+                <div class="stat-label">Монет/сек</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="headerLevel">1</div>
+                <div class="stat-label">Уровень</div>
+            </div>
+            <div class="stat-item">
+                <div class="gems-display">
+                    <span>💎</span>
+                    <span id="headerGems">10</span>
+                </div>
+                <div class="stat-label">Кристаллы</div>
+            </div>
+        </div>
+        <div class="header-btns">
+            <button class="btn-header" onclick="saveGame()">💾 Сохранить</button>
+            <button class="btn-header" onclick="resetGame()">🔄 Сброс</button>
+        </div>
+    </header>
+
+    <!-- LEFT PANEL -->
+    <aside class="left-panel">
+        <div class="panel-title">🏆 Достижения</div>
+        <div class="achievement-grid" id="achievementGrid"></div>
+
+        <div class="panel-title">📊 Статистика</div>
+        <div class="stats-list">
+            <div class="stats-row">
+                <span>Всего кликов</span>
+                <span id="statClicks">0</span>
+            </div>
+            <div class="stats-row">
+                <span>Всего заработано</span>
+                <span id="statTotal">0</span>
+            </div>
+            <div class="stats-row">
+                <span>Монет за клик</span>
+                <span id="statCPC">1</span>
+            </div>
+            <div class="stats-row">
+                <span>Монет в секунду</span>
+                <span id="statCPS">0</span>
+            </div>
+            <div class="stats-row">
+                <span>Критических ударов</span>
+                <span id="statCrits">0</span>
+            </div>
+            <div class="stats-row">
+                <span>Куплено улучшений</span>
+                <span id="statUpgrades">0</span>
+            </div>
+            <div class="stats-row">
+                <span>Время игры</span>
+                <span id="statTime">0 мин</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CENTER -->
+    <main class="center-panel">
+        <div class="coins-display">
+            <div class="coins-amount" id="coinsDisplay">0</div>
+            <div class="coins-per-sec">
+                <span id="cpsDisplay">0</span> монет/сек •
+                <span id="cpcDisplay">1</span> за клик
+            </div>
+        </div>
+
+        <div class="click-area">
+            <div class="click-btn-wrapper">
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <button class="click-btn" id="mainClickBtn" onclick="handleClick(event)" aria-label="Кликнуть для получения монет">
+                    🍪
+                </button>
+            </div>
+        </div>
+
+        <!-- Шкала крита -->
+        <div class="crit-bar">
+            <div class="crit-label">
+                <span>⚡ Критический удар</span>
+                <span id="critChance">5%</span>
+            </div>
+            <div class="crit-progress">
+                <div class="crit-fill" id="critFill" style="width: 5%"></div>
+            </div>
+        </div>
+
+        <!-- Множители -->
+        <div class="multiplier-display" id="multiplierDisplay">
+            <div class="multiplier-badge">🖱️ x1 за клик</div>
+        </div>
+
+        <!-- Прогресс уровня -->
+        <div class="level-progress">
+            <div class="level-info">
+                <span id="levelLabel">Уровень 1</span>
+                <span id="levelProgress">0 / 100</span>
+            </div>
+            <div class="progress-bar-outer">
+                <div class="progress-bar-inner" id="levelBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Активные бустеры -->
+        <div class="boosters-active" id="activeBoosters"></div>
+    </main>
+
+    <!-- RIGHT PANEL - SHOP -->
+    <aside class="right-panel">
+        <div class="shop-tabs">
+            <button class="shop-tab active" onclick="switchTab('upgrades')" aria-label="Улучшения">⬆️ Улучшения</button>
+            <button class="shop-tab" onclick="switchTab('buildings')" aria-label="Здания">🏗️ Здания</button>
+            <button class="shop-tab" onclick="switchTab('premium')" aria-label="Премиум">💎 Премиум</button>
+        </div>
+
+        <div class="shop-content">
+            <!-- Улучшения -->
+            <div class="shop-section active" id="section-upgrades">
+                <div id="upgradesList"></div>
+            </div>
+
+            <!-- Здания -->
+            <div class="shop-section" id="section-buildings">
+                <div id="buildingsList"></div>
+            </div>
+
+            <!-- Премиум -->
+            <div class="shop-section" id="section-premium">
+                <div id="premiumList"></div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<!-- Уведомление -->
+<div class="notification" id="notification" role="alert" aria-live="polite"></div>
+
+<!-- Попап достижения -->
+<div class="overlay" id="overlay" onclick="closeAchievementPopup()"></div>
+<div class="achievement-popup" id="achievementPopup">
+    <div class="achievement-popup-icon" id="popupIcon">🏆</div>
+    <h3 id="popupTitle">Достижение!</h3>
+    <p id="popupDesc">Описание достижения</p>
+    <button class="btn-header" style="margin-top:16px" onclick="closeAchievementPopup()">Отлично!</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ==================== ИГРОВОЕ СОСТОЯНИЕ ====================
+let game = {
+    coins: 0,
+    gems: 10,
+    totalCoins: 0,
+    clicks: 0,
+    crits: 0,
+    upgradesBought: 0,
+    cpc: 1,           // coins per click
+    cps: 0,           // coins per second
+    critChance: 0.05, // 5%
+    critMultiplier: 3,
+    level: 1,
+    levelXP: 0,
+    levelXPNeeded: 100,
+    startTime: Date.now(),
+    activeBoosters: [],
+    buildings: {},
+    upgrades: {},
+    premiumItems: {},
+    achievements: {}
+};
+
+// ==================== ДАННЫЕ УЛУЧШЕНИЙ ====================
+const upgradesData = [
+    { id: 'u1', name: 'Острые ногти', icon: '💅', desc: '+1 монета за клик', cost: 10, effect: () => { game.cpc += 1; }, color: '#f59e0b', req: 0 },
+    { id: 'u2', name: 'Двойной удар', icon: '👊', desc: '+3 монеты за клик', cost: 50, effect: () => { game.cpc += 3; }, color: '#f97316', req: 0 },
+    { id: 'u3', name: 'Золотые пальцы', icon: '✨', desc: '+10 монет за клик', cost: 200, effect: () => { game.cpc += 10; }, color: '#eab308', req: 5 },
+    { id: 'u4', name: 'Шанс крита +5%', icon: '⚡', desc: 'Критические удары +5%', cost: 150, effect: () => { game.critChance += 0.05; }, color: '#ef4444', req: 0 },
+    { id: 'u5', name: 'Крит x5', icon: '💥', desc: 'Крит множитель x5', cost: 500, effect: () => { game.critMultiplier = 5; }, color: '#ef4444', req: 10 },
+    { id: 'u6', name: 'Авто-клик', icon: '🤖', desc: '+2 клика в секунду', cost: 300, effect: () => { game.cps += 2; }, color: '#3b82f6', req: 0 },
+    { id: 'u7', name: 'Ускоритель', icon: '🚀', desc: 'CPS x2', cost: 1000, effect: () => { game.cps *= 2; }, color: '#8b5cf6', req: 20 },
+    { id: 'u8', name: 'Мегаклик', icon: '🌟', desc: '+50 монет за клик', cost: 2000, effect: () => { game.cpc += 50; }, color: '#f59e0b', req: 30 },
+    { id: 'u9', name: 'Шанс крита +15%', icon: '🎯', desc: 'Критические удары +15%', cost: 3000, effect: () => { game.critChance += 0.15; }, color: '#ef4444', req: 50 },
+    { id: 'u10', name: 'Турбо-режим', icon: '⚡', desc: '+100 CPS', cost: 5000, effect: () => { game.cps += 100; }, color: '#06b6d4', req: 100 },
+];
+
+// ==================== ДАННЫЕ ЗДАНИЙ ====================
+const buildingsData = [
+    { id: 'b1', name: 'Кликер-помощник', icon: '🖱️', desc: 'Авто-кликает каждую секунду', baseCost: 15, baseCPS: 0.1, color: '#3b82f6' },
+    { id: 'b2', name: 'Бабушка', icon: '👵', desc: 'Печёт печенье с любовью', baseCost: 100, baseCPS: 0.5, color: '#f97316' },
+    { id: 'b3', name: 'Ферма', icon: '🌾', desc: 'Выращивает сахарный тростник', baseCost: 500, baseCPS: 2, color: '#84cc16' },
+    { id: 'b4', name: 'Шахта', icon: '⛏️', desc: 'Добывает шоколадную руду', baseCost: 2000, baseCPS: 8, color: '#78716c' },
+    { id: 'b5', name: 'Фабрика', icon: '🏭', desc: 'Производит печенье 24/7', baseCost: 8000, baseCPS: 25, color: '#64748b' },
+    { id: 'b6', name: 'Банк', icon: '🏦', desc: 'Инвестирует в печенье', baseCost: 30000, baseCPS: 80, color: '#eab308' },
+    { id: 'b7', name: 'Лаборатория', icon: '🔬', desc: 'Синтезирует мега-печенье', baseCost: 100000, baseCPS: 250, color: '#06b6d4' },
+    { id: 'b8', name: 'Портал', icon: '🌀', desc: 'Импортирует из других измерений', baseCost: 500000, baseCPS: 1000, color: '#8b5cf6' },
+];
+
+// ==================== ДАННЫЕ ПРЕМИУМ ====================
+const premiumData = [
+    { id: 'p1', name: 'Буст x2 (30 сек)', icon: '⚡', desc: 'Удваивает все доходы на 30 секунд', cost: 2, costType: 'gems', color: '#f59e0b' },
+    { id: 'p2', name: 'Мега-буст x5 (60 сек)', icon: '🌟', desc: 'Пятикратный доход на 60 секунд', cost: 5, costType: 'gems', color: '#ef4444' },
+    { id: 'p3', name: '+500 монет', icon: '💰', desc: 'Мгновенное получение 500 монет', cost: 1, costType: 'gems', color: '#eab308' },
+    { id: 'p4', name: '+5000 монет', icon: '💎', desc: 'Мгновенное получение 5000 монет', cost: 5, costType: 'gems', color: '#8b5cf6' },
+    { id: 'p5', name: 'Автокликер Pro', icon: '🤖', desc: '+50 CPS навсегда', cost: 10, costType: 'gems', color: '#3b82f6' },
+    { id: 'p6', name: 'Золотой клик', icon: '✨', desc: '+100 монет за клик навсегда', cost: 15, costType: 'gems', color: '#f59e0b' },
+    { id: 'p7', name: 'Пакет кристаллов x5', icon: '💎', desc: 'Получить 5 кристаллов', cost: 50, costType: 'coins', color: '#a78bfa' },
+    { id: 'p8', name: 'Пакет кристаллов x20', icon: '💎', desc: 'Получить 20 кристаллов', cost: 200, costType: 'coins', color: '#7c3aed' },
+];
+
+// ==================== ДОСТИЖЕНИЯ ====================
+const achievementsData = [
+    { id: 'a1', icon: '🖱️', name: 'Первый клик!', desc: 'Кликните впервые', check: () => game.clicks >= 1 },
+    { id: 'a2', icon: '💪', name: 'Кликер', desc: '100 кликов', check: () => game.clicks >= 100 },
+    { id: 'a3', icon: '🏃', name: 'Кликоман', desc: '1000 кликов', check: () => game.clicks >= 1000 },
+    { id: 'a4', icon: '💰', name: 'Первые монеты', desc: 'Заработайте 100 монет', check: () => game.totalCoins >= 100 },
+    { id: 'a5', icon: '💵', name: 'Богатей', desc: 'Заработайте 10,000 монет', check: () => game.totalCoins >= 10000 },
+    { id: 'a6', icon: '💎', name: 'Миллионер', desc: 'Заработайте 1,000,000 монет', check: () => game.totalCoins >= 1000000 },
+    { id: 'a7', icon: '⚡', name: 'Критик', desc: '10 критических ударов', check: () => game.crits >= 10 },
+    { id: 'a8', icon: '🏗️', name: 'Строитель', desc: 'Купите первое здание', check: () => Object.values(game.buildings).some(b => b > 0) },
+    { id: 'a9', icon: '🏭', name: 'Промышленник', desc: 'Купите 10 зданий', check: () => Object.values(game.buildings).reduce((a,b) => a+b, 0) >= 10 },
+    { id: 'a10', icon: '⬆️', name: 'Улучшатель', desc: 'Купите 5 улучшений', check: () => game.upgradesBought >= 5 },
+    { id: 'a11', icon: '🎯', name: 'Снайпер', desc: 'Шанс крита 25%+', check: () => game.critChance >= 0.25 },
+    { id: 'a12', icon: '🚀', name: 'Скоростной', desc: '100+ монет в секунду', check: () => game.cps >= 100 },
+];
+
+// ==================== ФОРМАТИРОВАНИЕ ЧИСЕЛ ====================
+function formatNum(n) {
+    if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+    return Math.floor(n).toString();
+}
+
+// ==================== КЛИК ====================
+function handleClick(event) {
+    let earned = game.cpc;
+    let isCrit = Math.random() < game.critChance;
+
+    // Применить бустеры
+    let boostMult = getBoostMultiplier();
+
+    if (isCrit) {
+        earned *= game.critMultiplier;
+        game.crits++;
+        showFloatText(event, `+${formatNum(earned * boostMult)} 💥`, '#ef4444');
+    } else {
+        showFloatText(event, `+${formatNum(earned * boostMult)}`, '#ffd700');
+    }
+
+    earned *= boostMult;
+    game.coins += earned;
+    game.totalCoins += earned;
+    game.clicks++;
+    game.levelXP += 1;
+
+    updateDisplay();
+    checkAchievements();
+    checkLevelUp();
+}
+
+function getBoostMultiplier() {
+    let mult = 1;
+    const now = Date.now();
+    game.activeBoosters = game.activeBoosters.filter(b => b.until > now);
+    game.activeBoosters.forEach(b => mult *= b.mult);
+    return mult;
+}
+
+// ==================== ПЛАВАЮЩИЙ ТЕКСТ ====================
+function showFloatText(event, text, color) {
+    const el = document.createElement('div');
+    el.className = 'float-text';
+    el.textContent = text;
+    el.style.color = color;
+
+    const x = event.clientX - 20;
+    const y = event.clientY - 20;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1000);
+}
+
+// ==================== АВТОКЛИК (CPS) ====================
+setInterval(() => {
+    if (game.cps > 0) {
+        const boostMult = getBoostMultiplier();
+        const earned = game.cps * 0.1 * boostMult; // каждые 100мс
+        game.coins += earned;
+        game.totalCoins += earned;
+        game.levelXP += 0.01;
+        checkLevelUp();
+    }
+    updateDisplay();
+    updateBoosters();
+    checkAchievements();
+}, 100);
+
+// ==================== УРОВЕНЬ ====================
+function checkLevelUp() {
+    if (game.levelXP >= game.levelXPNeeded) {
+        game.levelXP -= game.levelXPNeeded;
+        game.level++;
+        game.levelXPNeeded = Math.floor(100 * Math.pow(1.5, game.level - 1));
+        game.gems += 2; // Кристаллы за уровень
+        showNotification(`🎉 Уровень ${game.level}! +2 кристалла`, 'success');
+    }
+}
+
+// ==================== ПОКУПКИ ====================
+function buyUpgrade(id) {
+    const upgrade = upgradesData.find(u => u.id === id);
+    if (!upgrade) return;
+    if (game.upgrades[id]) { showNotification('Уже куплено!', 'error'); return; }
+    if (game.coins < upgrade.cost) { showNotification('Недостаточно монет!', 'error'); return; }
+
+    game.coins -= upgrade.cost;
+    game.upgrades[id] = true;
+    game.upgradesBought++;
+    upgrade.effect();
+
+    showNotification(`✅ ${upgrade.name} куплено!`, 'success');
+    renderShop();
+    updateDisplay();
+    checkAchievements();
+}
+
+function buyBuilding(id) {
+    const building = buildingsData.find(b => b.id === id);
+    if (!building) return;
+    const owned = game.buildings[id] || 0;
+    const cost = Math.floor(building.baseCost * Math.pow(1.15, owned));
+
+    if (game.coins < cost) { showNotification('Недостаточно монет!', 'error'); return; }
+
+    game.coins -= cost;
+    game.buildings[id] = owned + 1;
+    game.cps += building.baseCPS;
+
+    showNotification(`✅ ${building.name} куплено! CPS +${building.baseCPS}`, 'success');
+    renderShop();
+    updateDisplay();
+    checkAchievements();
+}
+
+function buyPremium(id) {
+    const item = premiumData.find(p => p.id === id);
+    if (!item) return;
+
+    if (item.costType === 'gems') {
+        if (game.gems < item.cost) { showNotification('Недостаточно кристаллов! 💎', 'error'); return; }
+        game.gems -= item.cost;
+    } else {
+        if (game.coins < item.cost) { showNotification('Недостаточно монет!', 'error'); return; }
+        game.coins -= item.cost;
+    }
+
+    // Применяем эффект
+    switch(id) {
+        case 'p1':
+            game.activeBoosters.push({ name: '⚡ Буст x2', mult: 2, until: Date.now() + 30000 });
+            showNotification('⚡ Буст x2 активирован на 30 сек!', 'success');
+            break;
+        case 'p2':
+            game.activeBoosters.push({ name: '🌟 Буст x5', mult: 5, until: Date.now() + 60000 });
+            showNotification('🌟 Мега-буст x5 активирован на 60 сек!', 'success');
+            break;
+        case 'p3':
+            game.coins += 500;
+            game.totalCoins += 500;
+            showNotification('💰 +500 монет получено!', 'success');
+            break;
+        case 'p4':
+            game.coins += 5000;
+            game.totalCoins += 5000;
+            showNotification('💎 +5000 монет получено!', 'success');
+            break;
+        case 'p5':
+            game.cps += 50;
+            showNotification('🤖 Автокликер Pro активирован! +50 CPS', 'success');
+            break;
+        case 'p6':
+            game.cpc += 100;
+            showNotification('✨ Золотой клик! +100 монет за клик', 'success');
+            break;
+        case 'p7':
+            game.gems += 5;
+            showNotification('💎 +5 кристаллов получено!', 'success');
+            break;
+        case 'p8':
+            game.gems += 20;
+            showNotification('💎 +20 кристаллов получено!', 'success');
+            break;
+    }
+
+    renderShop();
+    updateDisplay();
+}
+
+// ==================== ОТОБРАЖЕНИЕ ====================
+function updateDisplay() {
+    const fmt = formatNum;
+
+    // Монеты
+    document.getElementById('coinsDisplay').textContent = fmt(game.coins);
+    document.getElementById('headerCoins').textContent = fmt(game.coins);
+    document.getElementById('headerCPS').textContent = fmt(game.cps);
+    document.getElementById('headerLevel').textContent = game.level;
+    document.getElementById('headerGems').textContent = game.gems;
+
+    // CPS и CPC
+    const boostMult = getBoostMultiplier();
+    document.getElementById('cpsDisplay').textContent = fmt(game.cps * boostMult);
+    document.getElementById('cpcDisplay').textContent = fmt(game.cpc * boostMult);
+
+    // Статистика
+    document.getElementById('statClicks').textContent = fmt(game.clicks);
+    document.getElementById('statTotal').textContent = fmt(game.totalCoins);
+    document.getElementById('statCPC').textContent = fmt(game.cpc);
+    document.getElementById('statCPS').textContent = fmt(game.cps);
+    document.getElementById('statCrits').textContent = fmt(game.crits);
+    document.getElementById('statUpgrades').textContent = game.upgradesBought;
+
+    const mins = Math.floor((Date.now() - game.startTime) / 60000);
+    document.getElementById('statTime').textContent = mins + ' мин';
+
+    // Уровень
+    document.getElementById('levelLabel').textContent = `Уровень ${game.level}`;
+    document.getElementById('levelProgress').textContent = `${Math.floor(game.levelXP)} / ${game.levelXPNeeded}`;
+    document.getElementById('levelBar').style.width = `${(game.levelXP / game.levelXPNeeded) * 100}%`;
+
+    // Крит
+    const critPct = Math.min(game.critChance * 100, 100);
+    document.getElementById('critChance').textContent = critPct.toFixed(0) + '%';
+    document.getElementById('critFill').style.width = critPct + '%';
+
+    // Множители
+    const multDiv = document.getElementById('multiplierDisplay');
+    multDiv.innerHTML = `
+        <div class="multiplier-badge">🖱️ x${fmt(game.cpc)} за клик</div>
+        <div class="multiplier-badge">⚡ ${(game.critChance*100).toFixed(0)}% крит</div>
+        <div class="multiplier-badge">💥 x${game.critMultiplier} крит</div>
+        ${boostMult > 1 ? `<div class="multiplier-badge" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.4);color:#fca5a5">🔥 Буст x${boostMult}</div>` : ''}
+    `;
+}
+
+// ==================== БУСТЕРЫ ====================
+function updateBoosters() {
+    const now = Date.now();
+    game.activeBoosters = game.activeBoosters.filter(b => b.until > now);
+
+    const container = document.getElementById('activeBoosters');
+    container.innerHTML = game.activeBoosters.map(b => {
+        const sec = Math.ceil((b.until - now) / 1000);
+        return `<div class="booster-active">${b.name} <span class="booster-timer">${sec}с</span></div>`;
+    }).join('');
+}
+
+// ==================== МАГАЗИН ====================
+function renderShop() {
+    // Улучшения
+    const upgradesList = document.getElementById('upgradesList');
+    upgradesList.innerHTML = upgradesData.map(u => {
+        const bought = game.upgrades[u.id];
+        const canBuy = !bought && game.coins >= u.cost;
+        const cantBuy = !bought && game.coins < u.cost;
+
+        return `
+        <div class="shop-item ${bought ? '' : canBuy ? 'can-buy' : 'cant-buy'}" 
+             style="--item-color: ${u.color}"
+             onclick="${bought ? '' : `buyUpgrade('${u.id}')`}">
+            <div class="item-header">
+                <div class="item-icon">${u.icon}</div>
+                <div class="item-info">
+                    <div class="item-name">${u.name} ${bought ? '✅' : ''}</div>
+                    <div class="item-desc">${u.desc}</div>
+                </div>
+            </div>
+            <div class="item-footer">
+                <div class="item-price">🪙 ${formatNum(u.cost)}</div>
+                ${bought ? '<span class="item-owned">Куплено</span>' : 
+                  `<button class="buy-btn" ${cantBuy ? 'disabled' : ''} onclick="event.stopPropagation(); buyUpgrade('${u.id}')">Купить</button>`}
+            </div>
+        </div>`;
+    }).join('');
+
+    // Здания
+    const buildingsList = document.getElementById('buildingsList');
+    buildingsList.innerHTML = buildingsData.map(b => {
+        const owned = game.buildings[b.id] || 0;
+        const cost = Math.floor(b.baseCost * Math.pow(1.15, owned));
+        const canBuy = game.coins >= cost;
+
+        return `
+        <div class="shop-item ${canBuy ? 'can-buy' : 'cant-buy'}" 
+             style="--item-color: ${b.color}"
+             onclick="buyBuilding('${b.id}')">
+            <div class="item-header">
+                <div class="item-icon">${b.icon}</div>
+                <div class="item-info">
+                    <div class="item-name">${b.name}</div>
+                    <div class="item-desc">${b.desc}</div>
+                </div>
+                <div class="item-owned">${owned}</div>
+            </div>
+            <div class="item-footer">
+                <div class="item-price">🪙 ${formatNum(cost)}</div>
+                <div class="item-effect">+${b.baseCPS} CPS</div>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Премиум
+    const premiumList = document.getElementById('premiumList');
+    premiumList.innerHTML = premiumData.map(p => {
+        const isGems = p.costType === 'gems';
+        const canBuy = isGems ? game.gems >= p.cost : game.coins >= p.cost;
+
+        return `
+        <div class="shop-item ${canBuy ? 'can-buy' : 'cant-buy'}" 
+             style="--item-color: ${p.color}"
+             onclick="buyPremium('${p.id}')">
+            <div class="premium-badge">Premium</div>
+            <div class="item-header">
+                <div class="item-icon">${p.icon}</div>
+                <div class="item-info">
+                    <div class="item-name">${p.name}</div>
+                    <div class="item-desc">${p.desc}</div>
+                </div>
+            </div>
+            <div class="item-footer">
+                <div class="item-price">${isGems ? '💎' : '🪙'} ${p.cost}</div>
+                <button class="buy-btn ${isGems ? 'gems-btn' : ''}" 
+                        ${!canBuy ? 'disabled' : ''}
+                        onclick="event.stopPropagation(); buyPremium('${p.id}')">
+                    ${isGems ? '💎 Купить' : 'Купить'}
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ==================== ДОСТИЖЕНИЯ ====================
+function renderAchievements() {
+    const grid = document.getElementById('achievementGrid');
+    grid.innerHTML = achievementsData.map(a => {
+        const unlocked = game.achievements[a.id];
+        return `
+        <div class="achievement ${unlocked ? 'unlocked' : 'locked'}" title="${a.name}">
+            ${a.icon}
+            <div class="achievement-tooltip">${a.name}</div>
+        </div>`;
+    }).join('');
+}
+
+function checkAchievements() {
+    achievementsData.forEach(a => {
+        if (!game.achievements[a.id] && a.check()) {
+            game.achievements[a.id] = true;
+            showAchievementPopup(a);
+            renderAchievements();
+        }
+    });
+}
+
+function showAchievementPopup(achievement) {
+    document.getElementById('popupIcon').textContent = achievement.icon;
+    document.getElementById('popupTitle').textContent = achievement.name;
+    document.getElementById('popupDesc').textContent = achievement.desc;
+
+    document.getElementById('overlay').classList.add('show');
+    document.getElementById('achievementPopup').classList.add('show');
+
+    setTimeout(closeAchievementPopup, 4000);
+}
+
+function closeAchievementPopup() {
+    document.getElementById('overlay').classList.remove('show');
+    document.getElementById('achievementPopup').classList.remove('show');
+}
+
+// ==================== УВЕДОМЛЕНИЯ ====================
+let notifTimer;
+function showNotification(msg, type = 'info') {
+    const el = document.getElementById('notification');
+    el.textContent = msg;
+    el.className = `notification show ${type}`;
+    clearTimeout(notifTimer);
+    notifTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ==================== ВКЛАДКИ МАГАЗИНА ====================
+function switchTab(tab) {
+    document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.shop-section').forEach(s => s.classList.remove('active'));
+
+    event.target.classList.add('active');
+    document.getElementById(`section-${tab}`).classList.add('active');
+}
+
+// ==================== СОХРАНЕНИЕ ====================
+function saveGame() {
+    localStorage.setItem('cookieClickerSave', JSON.stringify(game));
+    showNotification('💾 Игра сохранена!', 'success');
+}
+
+function loadGame() {
+    const saved = localStorage.getItem('cookieClickerSave');
+    if (saved) {
+        const data = JSON.parse(saved);
+        Object.assign(game, data);
+        game.activeBoosters = []; // Сбросить бустеры при загрузке
+        showNotification('✅ Сохранение загружено!', 'success');
+    }
+}
+
+function resetGame() {
+    if (confirm('Вы уверены? Весь прогресс будет потерян!')) {
+        localStorage.removeItem('cookieClickerSave');
+        location.reload();
+    }
+}
+
+// Автосохранение каждые 30 секунд
+setInterval(saveGame, 30000);
+
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
+loadGame();
+renderShop();
+renderAchievements();
+updateDisplay();
+
+// Обновление магазина каждые 500мс (для подсветки доступных товаров)
+setInterval(renderShop, 500);
+
+</script>
+</body>
+</html>
